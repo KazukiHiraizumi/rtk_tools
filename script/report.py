@@ -153,6 +153,10 @@ dictlib.merge(Config,parse_argv(sys.argv))
 Config["keys"].insert(0,"__count__")
 Config["labels"].insert(0,"#")
 
+if not "__recipe__" in Config["keys"]:
+  Config["keys"].insert(1,"__recipe__")
+  Config["labels"].insert(1,"Recipe")
+
 ####sub pub
 rospy.Subscriber("/report",String,cb_report)
 rospy.Subscriber("/report/update",Bool,cb_update)
