@@ -15,7 +15,7 @@ def cross(DCT,dct):
       DCT[k]=dct[k]
 
 def intersect_(ref,DCT,dct):
-  for k,v in ref.iteritems():
+  for k,v in ref.items():
     if isinstance(DCT[k], dict) and (k in dct and isinstance(dct[k], dict)):
       intersect_(ref[k],DCT[k],dct[k])
     elif k in dct:
