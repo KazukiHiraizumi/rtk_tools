@@ -138,19 +138,13 @@ def cb_save_as():
   if ret != "":
     dir=re.sub(r".*"+Config["recipe"]["dir"],"",ret)
     recipe=dir.replace("/","")
-    # 2021/03/16 hato ------------------------------ start ------------------------------
-    # commands.getoutput("cp -a "+dirpath+"/"+RecipeName+" "+dirpath+"/"+recipe)
     subprocess.getoutput("cp -a "+dirpath+"/"+RecipeName+" "+dirpath+"/"+recipe)
-    # 2021/03/16 hato ------------------------------  end  ------------------------------
     RecipeName=recipe
     Param["recipe"]=RecipeName
     rospy.set_param("/dashboard",Param)
     wRecipe.delete(0,tk.END)
     wRecipe.insert(0,Param["recipe"])
-    # 2021/03/16 hato ------------------------------ start ------------------------------
-    # commands.getoutput("rm "+linkpath+";ln -s "+dirpath+"/"+RecipeName+" "+linkpath)
     subprocess.getoutput("rm "+linkpath+";ln -s "+dirpath+"/"+RecipeName+" "+linkpath)
-    # 2021/03/16 hato ------------------------------  end  ------------------------------
  
 ####launch manager############
 def cb_run(n):
@@ -286,6 +280,7 @@ def cb_turnon(n):
   item["tag"]["font"]=boldfont
   if "sto" in item: timeout.clear(item["sto"])
   item["sto"]=timeout.set(functools.partial(cb_turnoff,n),item["timeout"])
+  rospy.set_param('/dashboard/ind'+item["topic"],True)
  
 def cb_turnoff(n):
   global Indicates
@@ -293,6 +288,7 @@ def cb_turnoff(n):
   if "sto" in item: item.pop("sto")
   item["tag"]["foreground"]=unlitcolor
   item["tag"]["font"]=normalfont
+  rospy.set_param('/dashboard/ind'+item["topic"],False)
  
 ####Display parametr############
 def cb_display(n):
@@ -388,16 +384,9 @@ if "load" in Config:
   yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
       lambda loader, node: OrderedDict(loader.construct_pairs(node)))
   try:
-    # 2021/03/16 hato ------------------------------ start ------------------------------
-    #conf=yaml.load(file(yamlpath))
     with open(yamlpath) as file:
       conf = yaml.safe_load(file)
-    # 2021/03/16 hato ------------------------------  end  ------------------------------
-    
-    # 2021/03/16 hato ------------------------------ start ------------------------------
-    # commands.getoutput("rosparam load "+yamlpath)
       subprocess.getoutput("rosparam load "+yamlpath)
-    # 2021/03/16 hato ------------------------------  end  ------------------------------
   except:
     conf={}
   try:
@@ -413,16 +402,9 @@ if "load" in Config:
   if init_load != Config["load"]:
     yamlpath=thispath+"/../"+Config["load"]
     try:
-      # 2021/03/16 hato ------------------------------ start ------------------------------
-      # conf=yaml.load(file(yamlpath))
       with open(yamlpath) as file:
         conf = yaml.safe_load(file)
-      # 2021/03/16 hato ------------------------------  end  ------------------------------
-      
-      # 2021/03/16 hato ------------------------------ start ------------------------------
-      # commands.getoutput("rosparam load "+yamlpath)
         subprocess.getoutput("rosparam load "+yamlpath)
-      # 2021/03/16 hato ------------------------------  end  ------------------------------
     except:
       conf={}
     try:
@@ -454,7 +436,7 @@ pub_Y3=rospy.Publisher("~loaded",Bool,queue_size=1)
 pub_E3=rospy.Publisher("~failed",Bool,queue_size=1)
 pub_msg=rospy.Publisher("/message",String,queue_size=1)
 pub_redraw=rospy.Publisher("/request/redraw",Bool,queue_size=1)
- 
+
 ####Layout####
 normalfont=(Config["font"]["family"],Config["font"]["size"],"normal")
 boldfont=(Config["font"]["family"],Config["font"]["size"],"bold")
@@ -484,19 +466,13 @@ copyicon=tk.PhotoImage(file=iconpath+Config["icon"]["copy"])
 redrawicon=tk.PhotoImage(file=iconpath+Config["icon"]["redraw"])
 tk.Button(root,image=logoicon,bd=0,background=bgcolor,highlightthickness=0,command=cb_mbox_pop).pack(side='left',anchor='nw',padx=(0,0))
 if "recipe" in Config:
-  # 2021/03/16 hato ------------------------------ start ------------------------------
-  # ln=commands.getoutput("ls -l "+linkpath)
   ln=subprocess.getoutput("ls -l "+linkpath)
-  # 2021/03/16 hato ------------------------------  end  ------------------------------
   if "->" in ln:
     dst=re.sub(r".*->","",ln)
     RecipeName=re.sub(r".*/","",dst)
     Param["recipe"]=RecipeName
     rospy.set_param("/dashboard",Param)
-  # 2021/03/16 hato ------------------------------ start ------------------------------
-  # commands.getoutput("rosparam load "+dirpath+"/"+RecipeName+"/param.yaml")
   subprocess.getoutput("rosparam load "+dirpath+"/"+RecipeName+"/param.yaml")
-  # 2021/03/16 hato ------------------------------  end  ------------------------------
   tk.Label(root,image=recipeicon,bd=0,background=bgcolor).pack(side='left',fill='y',anchor='e',padx=(10,0))
   wRecipe=tk.Entry(root,font=normalfont,width=10)
   wRecipe.pack(side='left',fill='y')
@@ -535,6 +511,7 @@ for key in ckeys:
     wlabel.pack(side='right',fill='y',anchor='e',padx=(0,5))
     item["tag"]=wlabel
     rospy.Subscriber(item["topic"],Bool,functools.partial(cb_indicator,n))
+    rospy.set_param('/dashboard/ind'+item["topic"],False)
     Indicates.append(item)
   elif key.startswith('disp'):
     item=Config[key]
