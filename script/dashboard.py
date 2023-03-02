@@ -196,10 +196,11 @@ def cb_run(n):
       item["state"]=1
       timeout.set(functools.partial(cb_runstat,n),3)
       if "pre" in item:
-        try:
-          subprocess.Popen(item["pre"].split())
-        except Exception:
-          print("dashboard pre("+item["pre"]+") failed")
+        for cmd in item["pre"]:
+          try:
+            subprocess.Popen(cmd.split())
+          except Exception:
+            print("dashboard pre("+cmd+") failed")
   elif item["state"]==2:
     if "confirm" in item:
       if item["confirm"]:
@@ -245,10 +246,11 @@ def cb_stop(n):
   item["button"]["image"]=starticon
   item["state"]=0
   if "post" in item:
-    try:
-      subprocess.Popen(item["post"].split())
-    except Exception:
-      print("dashboard post("+item["post"]+") failed")
+    for cmd in item["post"]:
+      try:
+        subprocess.Popen(cmd.split())
+      except Exception:
+        print("dashboard post("+cmd+") failed")
 
 shutdown=False
 def cb_shutdown(msg):
