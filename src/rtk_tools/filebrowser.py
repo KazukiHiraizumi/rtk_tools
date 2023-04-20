@@ -388,15 +388,14 @@ class FileBrowser(tk.Toplevel):
             for ch in bms:
                 ch[0] = unquote(ch[0]).replace("file://", "")
                 bm.append(ch)
-        for l in bm:
-            if len(l) == 1:
-                txt = split(l[0])[-1]
-            else:
-                txt = l[1]
-            self.left_tree.insert("", "end", iid=l[0],
-                                  text=txt,
-                                  image=self.im_folder)
-            wrapper.add_tooltip(l[0], l[0])
+#        for l in bm:
+#            if len(l) == 1:
+#                txt = split(l[0])[-1]
+#            else:
+#                txt = l[1]
+#            self.left_tree.insert("", "end", iid=l[0],text=txt)
+#                                  image=self.im_folder)
+#            wrapper.add_tooltip(l[0], l[0])
 
         # ---  right pane
         right_pane = ttk.Frame(paned)
@@ -890,7 +889,7 @@ class FileBrowser(tk.Toplevel):
         elif isabs(txt) or self.path_bar.winfo_ismapped():
             txt = txt[:int(pos)] + modif + txt[int(pos):]
             d, f = split(txt)
-            if f and not (f[0] is "." and self.hide):
+            if f and not (f[0]=="." and self.hide):
                 if not isabs(txt):
                     d2 = join(self.history[self._hist_index], d)
                 else:
@@ -900,7 +899,7 @@ class FileBrowser(tk.Toplevel):
                     root, dirs, files = walk(d2).send(None)
                     dirs.sort(key=lambda n: n.lower())
                     l2 = []
-                    if self.mode is not "opendir":
+                    if self.mode!="opendir":
                         files.sort(key=lambda n: n.lower())
                         extension = self.filetypes[self.filetype.get()]
                         if extension == r".*$":
@@ -1447,7 +1446,7 @@ class FileBrowser(tk.Toplevel):
                 name = join(self.history[self._hist_index], name)
             if not exists(name):
                 self.entry.delete(0, "end")
-            elif self.mode is "openfile":
+            elif self.mode=="openfile":
                 if isfile(name):
                     if self.multiple_selection:
                         self.result = (realpath(name),)
@@ -1471,7 +1470,7 @@ class FileBrowser(tk.Toplevel):
     def _validate_multiple_sel(self):
         """Validate selection in open mode with multiple selection."""
         sel = self.right_tree.selection()
-        if self.mode is "opendir":
+        if self.mode=="opendir":
             if sel:
                 self.result = tuple(realpath(s) for s in sel)
             else:
@@ -1498,7 +1497,7 @@ class FileBrowser(tk.Toplevel):
     def _validate_single_sel(self):
         """Validate selection in open mode without multiple selection."""
         sel = self.right_tree.selection()
-        if self.mode is "openfile":
+        if self.mode=="openfile":
             if len(sel) == 1:
                 sel = sel[0]
                 tags = self.right_tree.item(sel, "tags")
@@ -1516,7 +1515,7 @@ class FileBrowser(tk.Toplevel):
 
     def validate(self, event=None):
         """Validate selection and store it in self.results if valid."""
-        if self.mode is "save":
+        if self.mode=="save":
             self._validate_save()
         else:
             validation = self._validate_from_entry()
@@ -1565,6 +1564,44 @@ def asksaveasfilename(parent=None, title=_("Save As"), **kwargs):
             enable the user to create new folders if True (default)
     """
     dialog = FileBrowser(parent, mode="save", title=title, **kwargs)
+    dialog.wait_window(dialog)
+    return dialog.get_result()
+
+def askopendirname(parent=None, title=_("Open"), **kwargs):
+    """
+    Return :obj:`''` or the absolute path of the chosen directory.
+
+    Arguments:
+    
+        parent : Tk or Toplevel instance
+            parent window
+
+        title : str
+            the title of the filebrowser window
+
+        initialdir : str
+            directory whose content is initially displayed
+
+        initialfile : str
+            initially selected item (just the name, not the full path)
+
+        filetypes : list :obj:`[("name", "*.ext1|*.ext2|.."), ...]`
+          only the files of given filetype will be displayed,
+          e.g. to allow the user to switch between displaying only PNG or JPG
+          pictures or dispalying all files:
+          :obj:`filtypes=[("Pictures", "\*.png|\*.PNG|\*.jpg|\*.JPG'), ("All files", "\*")]`
+
+        okbuttontext : str
+            text displayed on the validate button, default is "Open".
+
+        cancelbuttontext : str
+            text displayed on the button that cancels the selection, default is "Cancel".
+
+        foldercreation : bool
+            enable the user to create new folders if True (default)
+    """
+    dialog = FileBrowser(parent, mode="opendir", multiple_selection=False,
+                         title=title, **kwargs)
     dialog.wait_window(dialog)
     return dialog.get_result()
 

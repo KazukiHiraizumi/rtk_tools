@@ -18,7 +18,7 @@ from std_msgs.msg import String
  
 import tkinter as tk
 import pymsgbox
-from tkfilebrowser import askopendirname
+from rtk_tools.filebrowser import askopendirname
 from rtk_tools.filebrowser import asksaveasfilename
 from rtk_tools import dictlib
 from dashlog import dashLog
@@ -131,6 +131,7 @@ def cb_save_as():
   msgBox.title("Save Recipe as")
   msgBox.withdraw()
   msgBoxWait=msgBox.after(1000,cb_wait_nop)
+  print("cb_save",dirpath)
   ret=asksaveasfilename(parent=root,defaultext="",initialdir=dirpath,initialfile="",filetypes=[("Directory", "*/")])
   msgBox.after_cancel(msgBoxWait)
   msgBoxWait=None
